@@ -1,0 +1,23 @@
+asgiref==3.2.3
+certifi==2019.11.28
+cffi==1.13.2
+chardet==3.0.4
+cryptography==2.8
+Django==3.0.2
+django-configurations==2.2
+django-dotenv==1.4.2
+django-extensions==2.2.6
+-e git+https://github.com/Nachtalb/django-telegrambot@35ec55f857007998ebdb5f97a088d870e7ab7218#egg=django_telegrambot
+emoji==0.5.4
+future==0.18.2
+idna==2.8
+psycopg2==2.8.4
+pycparser==2.19
+python-telegram-bot==12.3.0
+pytz==2019.3
+requests==2.22.0
+six==1.14.0
+sqlparse==0.3.0
+telegraph==1.4.0
+tornado==6.0.3
+urllib3==1.25.8
