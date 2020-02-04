@@ -2,6 +2,7 @@ import inspect
 import logging
 import pkgutil
 from functools import wraps
+from pathlib import Path
 from typing import Callable, List, Type
 
 from telegram import Bot, Chat, Message, Update, User
@@ -139,6 +140,9 @@ class BaseCommand:
 __all__ = []
 
 for loader, module_name, is_pkg in pkgutil.walk_packages(__path__):
+    module_path = Path(loader.path) / f'{module_name}.py'
+    if module_path.is_file() and module_path.open().readline().strip() == '# no-autoload':
+        continue
     _plugin_group_index += 1
     __all__.append(module_name)
     if module_name not in globals():

@@ -4,7 +4,6 @@ from telegram.ext import CallbackQueryHandler, MessageHandler
 
 from bot.commands import BaseCommand
 from bot.filters import Filters as OwnFilters
-from bot.models.promo_group import TelegramUser
 from bot.utils.chat import build_menu
 
 

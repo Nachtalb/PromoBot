@@ -71,6 +71,11 @@ class TelegramUser(TimeStampedModel, TelegramChat):
                                    default=MAIN,
                                    verbose_name='Menu',
                                    help_text=', '.join(MENUS))
+    current_group = models.ForeignKey('PromoGroup',
+                                      on_delete=models.SET_NULL,
+                                      related_name='current_at',
+                                      blank=True,
+                                      null=True)
 
     tmp_data = models.fields.TextField(default='')
 
