@@ -88,7 +88,7 @@ class TelegramUser(TimeStampedModel, TelegramChat):
 
     def set_menu(self, menu):
         self.menu = menu
-        self.save()
+        self.save(update_fields=['menu'])
 
 
 class TelegramChannel(TimeStampedModel, TelegramChat):
