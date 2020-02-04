@@ -55,9 +55,24 @@ class Participant(TimeStampedModel):
 class TelegramUser(TimeStampedModel, TelegramChat):
     auto_update = ['username', 'full_name']
 
+    MAIN = 'main'
+    NEW_PG_Q_1 = 'new promo group question 1'
+    MANAGE_GROUPS = 'manage groups'
+    MANAGE_GROUP = 'manage group'
+    EDIT_NAME = 'edit name'
+
+    MENUS = [MAIN, NEW_PG_Q_1, MANAGE_GROUPS, MANAGE_GROUP]
+
     id = models.fields.BigIntegerField(primary_key=True)
     username = models.fields.CharField(max_length=200, blank=True, null=True)
     full_name = models.fields.CharField(max_length=200)
+
+    menu = models.fields.CharField(max_length=100,
+                                   default=MAIN,
+                                   verbose_name='Menu',
+                                   help_text=', '.join(MENUS))
+
+    tmp_data = models.fields.TextField(default='')
 
     def __str__(self):
         return self.full_name
@@ -65,6 +80,10 @@ class TelegramUser(TimeStampedModel, TelegramChat):
     @property
     def name(self) -> str:
         return self.__str__()
+
+    def set_menu(self, menu):
+        self.menu = menu
+        self.save()
 
 
 class TelegramChannel(TimeStampedModel, TelegramChat):
