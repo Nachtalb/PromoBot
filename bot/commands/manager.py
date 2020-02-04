@@ -84,9 +84,17 @@ class Builtins(BaseCommand):
         self.message.reply_text(f'Name changed from "{old_name}" to "{name}"')
         self.manage_group(name)
 
+    @BaseCommand.command_wrapper(MessageHandler, filters=(OwnFilters.menu(TelegramUser.MANAGE_GROUP)
+                                                          & (OwnFilters.text_is('Enable')
+                                                             | OwnFilters.text_is('Disable'))))
+    def toggle_active(self):
+        group = self.get_group(self.telegram_user.tmp_data)
+        group.active = not group.active
+        group.save()
+        self.message.reply_text(f'Group "{group.name}" was {"Enabled" if group.active else "Disabled"}')
+        self.manage_group(group.name)
+
     @BaseCommand.command_wrapper(MessageHandler, filters=(OwnFilters.text_is('Add Participant')
-                                                          | OwnFilters.text_is('Delete')
-                                                          | OwnFilters.text_is('Enable')
-                                                          | OwnFilters.text_is('Disable')))
+                                                          | OwnFilters.text_is('Delete')))
     def comming_soon(self):
         self.message.reply_text('Comming soon...')
