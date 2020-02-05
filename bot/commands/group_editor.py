@@ -38,11 +38,6 @@ class GroupEditor(GroupBase):
                                 reply_markup=ReplyKeyboardMarkup(build_menu('Cancel')))
         self.set_menu(EDIT_NAME)
 
-    @BaseCommand.command_wrapper(MessageHandler, filters=(OF.menu(EDIT_NAME)
-                                                          & OF.text_is('Cancel')))
-    def edit_name(self):
-        self.manage_group(self.current_group)
-
     @BaseCommand.command_wrapper(MessageHandler, filters=OF.menu(EDIT_NAME))
     def edit_name(self):
         name = self.message.text
@@ -115,7 +110,7 @@ class GroupEditor(GroupBase):
         self.manage_group(self.current_group)
 
     @BaseCommand.command_wrapper(MessageHandler, filters=(OF.text_is('Cancel')
-                                                          & OF.menu(ADD_PARTICIPANT)))
+                                                          & OF.menu(ADD_PARTICIPANT, EDIT_NAME)))
     def cancel(self):
         if self.current_group:
             self.manage_group(self.current_group)
