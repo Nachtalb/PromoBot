@@ -38,7 +38,7 @@ class GroupEditor(GroupBase):
                                 reply_markup=ReplyKeyboardMarkup(build_menu('Cancel')))
         self.set_menu(EDIT_NAME)
 
-    @BaseCommand.command_wrapper(MessageHandler, filters=OF.menu(EDIT_NAME))
+    @BaseCommand.command_wrapper(MessageHandler, filters=OF.menu(EDIT_NAME) & OF.text_is_not('Cancel'))
     def edit_name(self):
         name = self.message.text
         if name in self.name_blacklist:
