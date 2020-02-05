@@ -32,6 +32,8 @@ class Filters:
         """:obj:`Filter`: Messages text matches given text."""
         if isinstance(texts, str):
             texts = [texts]
+        if lower:
+            texts = list(map(str.lower, texts))
 
         class TextIs(BaseFilter):
             name = 'Filters.text_is'
