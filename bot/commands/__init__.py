@@ -141,6 +141,9 @@ class BaseCommand:
         handler = next(filter(lambda h: isinstance(h, CommandHandler) and command in h.command, handlers))
         handler.handle_update(self.update, my_bot.dispatcher, True)
 
+    def set_menu(self, menu):
+        self.telegram_user.set_menu(menu)
+
 
 # Import submodules
 __all__ = []

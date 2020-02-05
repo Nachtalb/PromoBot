@@ -1,25 +1,25 @@
-from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
+from telegram import ReplyKeyboardMarkup
 from telegram.ext import MessageHandler
 
 from bot.commands import BaseCommand
 from bot.commands.group_base import GroupBase
-from bot.filters import Filters as OwnFilters
-from bot.models.promo_group import TelegramUser
+from bot.filters import Filters as OF
 from bot.models.promo_group import PromoGroup
 from bot.utils.chat import build_menu
+from bot import NEW_PG_Q_1, MAIN, MANAGE_GROUPS
 
 
 class GroupManager(GroupBase):
-    @BaseCommand.command_wrapper(MessageHandler, filters=(OwnFilters.menu(TelegramUser.MANAGE_GROUPS)
-                                                          & OwnFilters.text_is('New Group')))
+    @BaseCommand.command_wrapper(MessageHandler, filters=(OF.menu(MANAGE_GROUPS)
+                                                          & OF.text_is('New Group')))
     @BaseCommand.command_wrapper()
     def new(self):
         self.message.reply_text('What is he name of the Promotion Group?',
                                 reply_markup=ReplyKeyboardMarkup(build_menu('Cancel')))
-        self.telegram_user.set_menu(TelegramUser.NEW_PG_Q_1)
+        self.set_menu(NEW_PG_Q_1)
 
-    @BaseCommand.command_wrapper(MessageHandler, filters=(OwnFilters.menu(TelegramUser.NEW_PG_Q_1)
-                                                          & OwnFilters.text_is_not('Cancel')))
+    @BaseCommand.command_wrapper(MessageHandler, filters=(OF.menu(NEW_PG_Q_1)
+                                                          & OF.text_is_not('Cancel')))
     def create_pg(self):
         name = self.message.text
         if name in self.name_blacklist:
@@ -35,16 +35,16 @@ class GroupManager(GroupBase):
         promo_group.save()
 
         self.message.reply_text('Okay got it. I have created a new Promotion Group.')
-        self.telegram_user.set_menu(TelegramUser.MAIN)
+        self.set_menu(MAIN)
         self.mygroups()
 
-    @BaseCommand.command_wrapper(MessageHandler, filters=(OwnFilters.text_is('Back to list')
-                                                          | (OwnFilters.text_is('Cancel')
-                                                             & OwnFilters.menu(TelegramUser.NEW_PG_Q_1))))
+    @BaseCommand.command_wrapper(MessageHandler, filters=(OF.text_is('Back to list')
+                                                          | (OF.text_is('Cancel')
+                                                             & OF.menu(NEW_PG_Q_1))))
     @BaseCommand.command_wrapper()
     def mygroups(self):
         self.current_group = None
-        self.telegram_user.set_menu(TelegramUser.MANAGE_GROUPS)
+        self.set_menu(MANAGE_GROUPS)
 
         names = list(map(lambda o: o.name, PromoGroup.objects.filter(admins=self.telegram_user)))
         menu = build_menu(*names, footer_buttons=['New Group'])

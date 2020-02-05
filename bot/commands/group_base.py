@@ -9,12 +9,8 @@ class GroupBase(BaseCommand):
         'Cancel', 'New Group',
     ]
 
-
     def get_group(self, name):
         return PromoGroup.objects.filter(admins=self.telegram_user, name=name).first()
-
-    def set_menu(self, menu):
-        self.telegram_user.set_menu(menu)
 
     @property
     def current_group(self):

@@ -3,14 +3,15 @@ from telegram.ext import MessageHandler
 
 from bot.commands import BaseCommand
 from bot.commands.group_base import GroupBase
-from bot.filters import Filters as OwnFilters
-from bot.models.promo_group import TelegramUser, TelegramChannel, Participant
+from bot.filters import Filters as OF
+from bot.models.promo_group import TelegramChannel, Participant
 from bot.models.promo_group import PromoGroup
 from bot.utils.chat import build_menu
+from bot import MANAGE_GROUPS, MANAGE_GROUP, EDIT_NAME, DELETE_GROUP, ADD_PARTICIPANT
 
 
 class GroupEditor(GroupBase):
-    @BaseCommand.command_wrapper(MessageHandler, filters=OwnFilters.menu(TelegramUser.MANAGE_GROUPS))
+    @BaseCommand.command_wrapper(MessageHandler, filters=OF.menu(MANAGE_GROUPS))
     def manage_group(self, group: str or PromoGroup or None = None):
         if isinstance(group, PromoGroup):
             self.current_group = group
@@ -28,21 +29,21 @@ class GroupEditor(GroupBase):
                           footer_buttons=['Back to list'])
 
         self.message.reply_text(f'Manage "{self.current_group.name}":', reply_markup=ReplyKeyboardMarkup(menu))
-        self.telegram_user.set_menu(TelegramUser.MANAGE_GROUP)
+        self.set_menu(MANAGE_GROUP)
 
-    @BaseCommand.command_wrapper(MessageHandler, filters=(OwnFilters.text_is('Edit Name')
-                                                          & OwnFilters.menu(TelegramUser.MANAGE_GROUP)))
+    @BaseCommand.command_wrapper(MessageHandler, filters=(OF.text_is('Edit Name')
+                                                          & OF.menu(MANAGE_GROUP)))
     def pre_edit_name(self):
         self.message.reply_text(f'Send me the new name for the group "{self.current_group.name}"',
                                 reply_markup=ReplyKeyboardMarkup(build_menu('Cancel')))
-        self.telegram_user.set_menu(TelegramUser.EDIT_NAME)
+        self.set_menu(EDIT_NAME)
 
-    @BaseCommand.command_wrapper(MessageHandler, filters=(OwnFilters.menu(TelegramUser.EDIT_NAME)
-                                                          & OwnFilters.text_is('Cancel')))
+    @BaseCommand.command_wrapper(MessageHandler, filters=(OF.menu(EDIT_NAME)
+                                                          & OF.text_is('Cancel')))
     def edit_name(self):
         self.manage_group(self.current_group)
 
-    @BaseCommand.command_wrapper(MessageHandler, filters=OwnFilters.menu(TelegramUser.EDIT_NAME))
+    @BaseCommand.command_wrapper(MessageHandler, filters=OF.menu(EDIT_NAME))
     def edit_name(self):
         name = self.message.text
         if name in self.name_blacklist:
@@ -64,9 +65,9 @@ class GroupEditor(GroupBase):
         self.message.reply_text(f'Name changed from "{old_name}" to "{name}"')
         self.manage_group(name)
 
-    @BaseCommand.command_wrapper(MessageHandler, filters=(OwnFilters.menu(TelegramUser.MANAGE_GROUP)
-                                                          & (OwnFilters.text_is('Enable')
-                                                             | OwnFilters.text_is('Disable'))))
+    @BaseCommand.command_wrapper(MessageHandler, filters=(OF.menu(MANAGE_GROUP)
+                                                          & (OF.text_is('Enable')
+                                                             | OF.text_is('Disable'))))
     def toggle_active(self):
         self.current_group.active = not self.current_group.active
         self.current_group.save()
@@ -74,35 +75,35 @@ class GroupEditor(GroupBase):
                                 f'{"Enabled" if self.current_group.active else "Disabled"}')
         self.manage_group(self.current_group.name)
 
-    @BaseCommand.command_wrapper(MessageHandler, filters=(OwnFilters.menu(TelegramUser.MANAGE_GROUP)
-                                                          & OwnFilters.text_is('Delete')))
+    @BaseCommand.command_wrapper(MessageHandler, filters=(OF.menu(MANAGE_GROUP)
+                                                          & OF.text_is('Delete')))
     def delete_group(self):
         self.message.reply_text('Are you sure?', reply_markup=ReplyKeyboardMarkup(build_menu('Yes', 'No')))
-        self.telegram_user.set_menu(TelegramUser.DELETE_GROUP)
+        self.set_menu(DELETE_GROUP)
 
-    @BaseCommand.command_wrapper(MessageHandler, filters=(OwnFilters.menu(TelegramUser.DELETE_GROUP)
-                                                          & OwnFilters.text_is('Yes')))
+    @BaseCommand.command_wrapper(MessageHandler, filters=(OF.menu(DELETE_GROUP)
+                                                          & OF.text_is('Yes')))
     def delete_group_yes(self):
         name = self.current_group.name
         self.current_group.delete()
         self.message.reply_text(f'Group "{name}" has been deleted.')
         self.run_command('mygroups')
 
-    @BaseCommand.command_wrapper(MessageHandler, filters=(OwnFilters.menu(TelegramUser.DELETE_GROUP)
-                                                          & OwnFilters.text_is('No')))
+    @BaseCommand.command_wrapper(MessageHandler, filters=(OF.menu(DELETE_GROUP)
+                                                          & OF.text_is('No')))
     def delete_group_no(self):
         self.message.reply_text(f'Cancelled')
         self.manage_group(self.current_group)
 
-    @BaseCommand.command_wrapper(MessageHandler, filters=(OwnFilters.text_is('Add Participant')))
+    @BaseCommand.command_wrapper(MessageHandler, filters=(OF.text_is('Add Participant')))
     def add_participant(self):
         self.message.reply_text('Make sure this bot is an admin of the channel you want to add and then forward any '
                                 'message from that channel here.',
                                 reply_markup=ReplyKeyboardMarkup(build_menu('Cancel')))
 
-        self.set_menu(TelegramUser.ADD_PARTICIPANT)
+        self.set_menu(ADD_PARTICIPANT)
 
-    @BaseCommand.command_wrapper(MessageHandler, filters=OwnFilters.channel_message)
+    @BaseCommand.command_wrapper(MessageHandler, filters=OF.channel_message)
     def add_participant_wait(self):
         channel_chat = self.message.forward_from_chat
         channel = TelegramChannel.objects.get_or_create(id=channel_chat.id)[0]
@@ -113,9 +114,8 @@ class GroupEditor(GroupBase):
         self.message.reply_text(f'Participant "{channel.name}" added to "{self.current_group.name}"')
         self.manage_group(self.current_group)
 
-
-    @BaseCommand.command_wrapper(MessageHandler, filters=(OwnFilters.text_is('Cancel')
-                                                          & OwnFilters.menu(TelegramUser.ADD_PARTICIPANT)))
+    @BaseCommand.command_wrapper(MessageHandler, filters=(OF.text_is('Cancel')
+                                                          & OF.menu(ADD_PARTICIPANT)))
     def cancel(self):
         if self.current_group:
             self.manage_group(self.current_group)

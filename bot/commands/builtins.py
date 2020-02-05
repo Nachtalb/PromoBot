@@ -3,9 +3,9 @@ from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import CallbackQueryHandler, MessageHandler
 
 from bot.commands import BaseCommand
-from bot.models.promo_group import TelegramUser
-from bot.filters import Filters as OwnFilters
+from bot.filters import Filters as OF
 from bot.utils.chat import build_menu
+from bot import MAIN
 
 
 class Builtins(BaseCommand):
@@ -15,7 +15,7 @@ class Builtins(BaseCommand):
         self.message.reply_html(get_template('commands/builtins/help.html').render())
 
     @BaseCommand.command_wrapper(CallbackQueryHandler, pattern='^(home|reset)$')
-    @BaseCommand.command_wrapper(MessageHandler, filters=OwnFilters.text_is(['home', 'reset'], lower=True))
+    @BaseCommand.command_wrapper(MessageHandler, filters=OF.text_is(['home', 'reset'], lower=True))
     @BaseCommand.command_wrapper(names=['start', 'reset'])
     def start(self):
         if self.update.callback_query:
@@ -23,7 +23,7 @@ class Builtins(BaseCommand):
             self.message.delete()
 
         self.telegram_user.current_channel = None
-        self.telegram_user.set_menu(TelegramUser.MAIN)
+        self.set_menu(MAIN)
 
         header, middle, footer = BaseCommand._start_buttons
         menu = build_menu(*middle, header_buttons=header, footer_buttons=footer)

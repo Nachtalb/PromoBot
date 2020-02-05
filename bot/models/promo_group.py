@@ -3,6 +3,7 @@ from django_extensions.db.models import TimeStampedModel
 from telegram import Chat
 
 from bot.utils.internal import bot_not_running_protect
+from bot import menus, MAIN
 
 
 class TelegramChat(TimeStampedModel):
@@ -58,16 +59,6 @@ class Participant(TimeStampedModel):
 class TelegramUser(TelegramChat):
     auto_update = ['username', 'full_name']
 
-    MAIN = 'main'
-    NEW_PG_Q_1 = 'new promo group question 1'
-    MANAGE_GROUPS = 'manage groups'
-    MANAGE_GROUP = 'manage group'
-    EDIT_NAME = 'edit name'
-    DELETE_GROUP = 'delete group'
-    ADD_PARTICIPANT = 'add participant'
-
-    MENUS = [MAIN, NEW_PG_Q_1, MANAGE_GROUPS, MANAGE_GROUP]
-
     id = models.fields.BigIntegerField(primary_key=True)
     username = models.fields.CharField(max_length=200, blank=True, null=True)
     full_name = models.fields.CharField(max_length=200)
@@ -75,7 +66,7 @@ class TelegramUser(TelegramChat):
     menu = models.fields.CharField(max_length=100,
                                    default=MAIN,
                                    verbose_name='Menu',
-                                   help_text=', '.join(MENUS))
+                                   help_text=', '.join(menus.values()))
     current_group = models.ForeignKey('PromoGroup',
                                       on_delete=models.SET_NULL,
                                       related_name='current_at',
