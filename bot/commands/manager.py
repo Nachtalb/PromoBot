@@ -1,4 +1,4 @@
-from telegram import ReplyKeyboardMarkup
+from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import MessageHandler
 
 from bot.commands import BaseCommand
@@ -37,8 +37,13 @@ class GroupManager(GroupBase):
     @BaseCommand.command_wrapper(MessageHandler, filters=OwnFilters.text_is('Back to list'))
     @BaseCommand.command_wrapper()
     def mygroups(self):
-        names = map(lambda o: o.name, PromoGroup.objects.filter(admins=self.telegram_user))
-        menu = build_menu(*names)
-        self.message.reply_text('Promotion Groups:', reply_markup=ReplyKeyboardMarkup(menu))
         self.current_group = None
         self.telegram_user.set_menu(TelegramUser.MANAGE_GROUPS)
+
+        names = list(map(lambda o: o.name, PromoGroup.objects.filter(admins=self.telegram_user)))
+        menu = build_menu(*names)
+        if not menu:
+            self.message.reply_text('No Promoion Groups created yet. Use /new to create a new one.',
+                                    reply_markup=ReplyKeyboardRemove())
+        else:
+            self.message.reply_text('Promotion Groups:', reply_markup=ReplyKeyboardMarkup(menu))
