@@ -28,10 +28,8 @@ class Filters:
     """:obj:`Filter`: Messages sent in a channels."""
 
     @staticmethod
-    def text_is(texts: List[str] or str, lower: bool = False):
+    def text_is(*texts: List[str], lower: bool = False):
         """:obj:`Filter`: Messages text matches given text."""
-        if isinstance(texts, str):
-            texts = [texts]
         if lower:
             texts = list(map(str.lower, texts))
 
@@ -46,9 +44,9 @@ class Filters:
         return TextIs()
 
     @staticmethod
-    def text_is_not(texts: List[str] or str, lower: bool = False):
+    def text_is_not(*texts: List[str], lower: bool = False):
         """:obj:`Filter`: Messages text does not matche given text."""
-        textis = Filters.text_is(texts, lower)
+        textis = Filters.text_is(*texts, lower)
 
         class TextIsNot(BaseFilter):
             name = 'Filters.text_is_not'

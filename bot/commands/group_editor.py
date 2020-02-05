@@ -29,6 +29,8 @@ class GroupEditor(GroupBase):
 
         menu = build_menu('Edit Name', 'Add Participant',
                           'Disable' if self.current_group.active else 'Enable', 'List Participants',
+                          'Edit Topics', 'Edit Participants',
+                          'Change Promotion Template', 'Set Date/Time',
                           'Delete',
                           footer_buttons=['Back to list'])
 
@@ -133,3 +135,9 @@ class GroupEditor(GroupBase):
         })
         html = re.sub('\n+', '\n\n', html)
         self.message.reply_html(html)
+
+    @BaseCommand.command_wrapper(MessageHandler, filters=(OF.menu(MANAGE_GROUP)
+                                                         & OF.text_is('Edit Topics', 'Edit Participants',
+                                                                      'Change Promotion Template', 'Set Date/Time')))
+    def comming_soon(self):
+        self.message.reply_text('Work in progrss')

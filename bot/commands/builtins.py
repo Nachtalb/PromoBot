@@ -15,7 +15,7 @@ class Builtins(BaseCommand):
         self.message.reply_html(get_template('commands/builtins/help.html').render())
 
     @BaseCommand.command_wrapper(CallbackQueryHandler, pattern='^(home|reset)$')
-    @BaseCommand.command_wrapper(MessageHandler, filters=OF.text_is(['home', 'reset'], lower=True))
+    @BaseCommand.command_wrapper(MessageHandler, filters=OF.text_is('home', 'reset', lower=True))
     @BaseCommand.command_wrapper(names=['start', 'reset'])
     def start(self):
         if self.update.callback_query:
