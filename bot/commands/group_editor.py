@@ -108,6 +108,11 @@ class GroupEditor(GroupBase):
         channel = TelegramChannel.objects.get_or_create(id=channel_chat.id)[0]
         channel.auto_update_values()
 
+        if Participant.objects.get(promo_group=self.current_group, channel=channel):
+            self.message.reply_text(f'The channel "{channel.name}" is already a participant of '
+                                    f'"{self.current_group.name}"')
+            return
+
         participant = Participant.objects.create(channel=channel, promo_group=self.current_group, active=True)
         participant.save()
 
