@@ -40,5 +40,5 @@ class GroupManager(GroupBase):
         names = map(lambda o: o.name, PromoGroup.objects.filter(admins=self.telegram_user))
         menu = build_menu(*names)
         self.message.reply_text('Promotion Groups:', reply_markup=ReplyKeyboardMarkup(menu))
-        self.telegram_user.tmp_data = ''
+        self.current_group = None
         self.telegram_user.set_menu(TelegramUser.MANAGE_GROUPS)
