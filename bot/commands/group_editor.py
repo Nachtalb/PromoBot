@@ -20,6 +20,9 @@ class GroupEditor(GroupBase):
                 return
             self.current_group = self.get_group(name)
 
+        if not self.current_group:
+            return
+
         menu = build_menu('Edit Name', 'Add Participant',
                           'Disable' if self.current_group.active else 'Enable', 'Delete',
                           footer_buttons=['Back to list'])
