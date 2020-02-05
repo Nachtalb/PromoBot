@@ -81,7 +81,7 @@ class GroupEditor(GroupBase):
                                                           & OwnFilters.text_is('Yes')))
     def delete_group_yes(self):
         name = self.current_group.name
-        # self.current_group.delete()
+        self.current_group.delete()
         self.message.reply_text(f'Group "{name}" has been deleted.')
         self.run_command('mygroups')
 
