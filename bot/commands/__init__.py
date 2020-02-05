@@ -1,4 +1,5 @@
 import inspect
+import itertools
 import logging
 import pkgutil
 from functools import wraps
@@ -6,7 +7,7 @@ from pathlib import Path
 from typing import Callable, List, Type
 
 from telegram import Bot, Chat, Message, Update, User
-from telegram.ext import Handler, run_async
+from telegram.ext import Handler, run_async, CommandHandler
 
 from bot.models.promo_group import TelegramChannel
 from bot.models.promo_group import TelegramUser
@@ -134,6 +135,11 @@ class BaseCommand:
             return wrapper
 
         return outer_wrapper
+
+    def run_command(self, command: str, handle_update: bool = False, *args, **kwargs):
+        handlers = list(itertools.chain.from_iterable(my_bot.dispatcher.handlers.values()))
+        handler = next(filter(lambda h: isinstance(h, CommandHandler) and command in h.command, handlers))
+        handler.handle_update(self.update, my_bot.dispatcher, True)
 
 
 # Import submodules
