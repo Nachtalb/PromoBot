@@ -6,6 +6,7 @@ from bot.models.promo_group import PromoGroup
 class GroupBase(BaseCommand):
     name_blacklist = [
         'Back to list', 'Enable', 'Disable', 'Delete', 'Yes', 'No', 'Edit Name', 'Add Participant',
+        'Cancel',
     ]
 
 

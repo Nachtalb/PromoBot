@@ -30,8 +30,14 @@ class GroupEditor(GroupBase):
     @BaseCommand.command_wrapper(MessageHandler, filters=(OwnFilters.text_is('Edit Name')
                                                           & OwnFilters.menu(TelegramUser.MANAGE_GROUP)))
     def pre_edit_name(self):
-        self.message.reply_text(f'Send me the new name for the group "{self.current_group.name}"')
+        self.message.reply_text(f'Send me the new name for the group "{self.current_group.name}"',
+                                reply_markup=ReplyKeyboardMarkup(build_menu('Cancel')))
         self.telegram_user.set_menu(TelegramUser.EDIT_NAME)
+
+    @BaseCommand.command_wrapper(MessageHandler, filters=(OwnFilters.menu(TelegramUser.EDIT_NAME)
+                                                          & OwnFilters.text_is('Cancel')))
+    def edit_name(self):
+        self.manage_group(self.current_group)
 
     @BaseCommand.command_wrapper(MessageHandler, filters=OwnFilters.menu(TelegramUser.EDIT_NAME))
     def edit_name(self):
