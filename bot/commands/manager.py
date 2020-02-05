@@ -18,6 +18,10 @@ class GroupManager(GroupBase):
     @BaseCommand.command_wrapper(MessageHandler, filters=OwnFilters.menu(TelegramUser.NEW_PG_Q_1))
     def create_pg(self):
         name = self.message.text
+        if name in self.name_blacklist:
+            self.message.reply_text(f'You can\'t name your group "{name}"')
+            return
+
         if self.get_group(name):
             self.message.reply_text(f'A group with the name "{name}" does already exist')
             return

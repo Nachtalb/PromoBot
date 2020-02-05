@@ -4,6 +4,11 @@ from bot.models.promo_group import PromoGroup
 
 
 class GroupBase(BaseCommand):
+    name_blacklist = [
+        'Back to list', 'Enable', 'Disable', 'Delete', 'Yes', 'No', 'Edit Name', 'Add Participant',
+    ]
+
+
     def get_group(self, name):
         return PromoGroup.objects.filter(admins=self.telegram_user, name=name).first()
 
