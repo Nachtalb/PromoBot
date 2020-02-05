@@ -1,0 +1,9 @@
+<strong>Participants:</strong>
+
+{% if participants %}
+{% for participant in participants %}
+<a href="{{ participant.channel.chat.invite_link }}">{{ participant.channel.title }}</a>
+{% endfor %}
+{% else %}
+You haven't added any participants yet.
+{% endif %}

@@ -1,3 +1,6 @@
+import re
+
+from django.template.loader import get_template
 from telegram import ReplyKeyboardMarkup
 from telegram.ext import MessageHandler
 
@@ -25,7 +28,8 @@ class GroupEditor(GroupBase):
             return
 
         menu = build_menu('Edit Name', 'Add Participant',
-                          'Disable' if self.current_group.active else 'Enable', 'Delete',
+                          'Disable' if self.current_group.active else 'Enable', 'List Participants',
+                          'Delete',
                           footer_buttons=['Back to list'])
 
         self.message.reply_text(f'Manage "{self.current_group.name}":', reply_markup=ReplyKeyboardMarkup(menu))
@@ -106,6 +110,8 @@ class GroupEditor(GroupBase):
 
         participant = Participant.objects.create(channel=channel, promo_group=self.current_group, active=True)
         participant.save()
+
+        self.bot.export_chat_invite_link(channel.id)
         self.message.reply_text(f'Participant "{channel.name}" added to "{self.current_group.name}"')
         self.manage_group(self.current_group)
 
@@ -114,3 +120,11 @@ class GroupEditor(GroupBase):
     def cancel(self):
         if self.current_group:
             self.manage_group(self.current_group)
+
+    @BaseCommand.command_wrapper(MessageHandler, filters=OF.menu(MANAGE_GROUP) & OF.text_is('List Participants'))
+    def list_participants(self):
+        html = get_template('commands/group_editor/list_participants.html').render({
+            'participants': Participant.objects.filter(promo_group=self.current_group)
+        })
+        html = re.sub('\n+', '\n\n', html)
+        self.message.reply_html(html)
