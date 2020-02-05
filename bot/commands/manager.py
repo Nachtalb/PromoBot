@@ -10,12 +10,16 @@ from bot.utils.chat import build_menu
 
 
 class GroupManager(GroupBase):
+    @BaseCommand.command_wrapper(MessageHandler, filters=(OwnFilters.menu(TelegramUser.MANAGE_GROUPS)
+                                                          & OwnFilters.text_is('New Group')))
     @BaseCommand.command_wrapper()
     def new(self):
-        self.message.reply_text('What is he name of the Promotion Group?')
+        self.message.reply_text('What is he name of the Promotion Group?',
+                                reply_markup=ReplyKeyboardMarkup(build_menu('Cancel')))
         self.telegram_user.set_menu(TelegramUser.NEW_PG_Q_1)
 
-    @BaseCommand.command_wrapper(MessageHandler, filters=OwnFilters.menu(TelegramUser.NEW_PG_Q_1))
+    @BaseCommand.command_wrapper(MessageHandler, filters=(OwnFilters.menu(TelegramUser.NEW_PG_Q_1)
+                                                          & OwnFilters.text_is_not('Cancel')))
     def create_pg(self):
         name = self.message.text
         if name in self.name_blacklist:
@@ -34,16 +38,19 @@ class GroupManager(GroupBase):
         self.telegram_user.set_menu(TelegramUser.MAIN)
         self.mygroups()
 
-    @BaseCommand.command_wrapper(MessageHandler, filters=OwnFilters.text_is('Back to list'))
+    @BaseCommand.command_wrapper(MessageHandler, filters=(OwnFilters.text_is('Back to list')
+                                                          | (OwnFilters.text_is('Cancel')
+                                                             & OwnFilters.menu(TelegramUser.NEW_PG_Q_1))))
     @BaseCommand.command_wrapper()
     def mygroups(self):
         self.current_group = None
         self.telegram_user.set_menu(TelegramUser.MANAGE_GROUPS)
 
         names = list(map(lambda o: o.name, PromoGroup.objects.filter(admins=self.telegram_user)))
-        menu = build_menu(*names)
-        if not menu:
-            self.message.reply_text('No Promoion Groups created yet. Use /new to create a new one.',
-                                    reply_markup=ReplyKeyboardRemove())
+        menu = build_menu(*names, footer_buttons=['New Group'])
+        if len(menu) == 1:
+            text = 'No Promoion Groups created yet. Use /new to create a new one.'
         else:
-            self.message.reply_text('Promotion Groups:', reply_markup=ReplyKeyboardMarkup(menu))
+            text = 'Promotion Groups'
+
+        self.message.reply_text(text, reply_markup=ReplyKeyboardMarkup(menu))
