@@ -4,7 +4,7 @@ from telegram.ext import MessageHandler
 from bot.commands import BaseCommand
 from bot.commands.group_base import GroupBase
 from bot.filters import Filters as OwnFilters
-from bot.models.promo_group import TelegramUser
+from bot.models.promo_group import TelegramUser, TelegramChannel, Participant
 from bot.models.promo_group import PromoGroup
 from bot.utils.chat import build_menu
 
@@ -95,5 +95,27 @@ class GroupEditor(GroupBase):
         self.manage_group(self.current_group)
 
     @BaseCommand.command_wrapper(MessageHandler, filters=(OwnFilters.text_is('Add Participant')))
-    def comming_soon(self):
-        self.message.reply_text('Comming soon...')
+    def add_participant(self):
+        self.message.reply_text('Make sure this bot is an admin of the channel you want to add and then forward any '
+                                'message from that channel here.',
+                                reply_markup=ReplyKeyboardMarkup(build_menu('Cancel')))
+
+        self.set_menu(TelegramUser.ADD_PARTICIPANT)
+
+    @BaseCommand.command_wrapper(MessageHandler, filters=OwnFilters.channel_message)
+    def add_participant_wait(self):
+        channel_chat = self.message.forward_from_chat
+        channel = TelegramChannel.objects.get_or_create(id=channel_chat.id)[0]
+        channel.auto_update_values()
+
+        participant = Participant.objects.create(channel=channel, promo_group=self.current_group, active=True)
+        participant.save()
+        self.message.reply_text(f'Participant "{channel.name}" added to "{self.current_group.name}"')
+        self.manage_group(self.current_group)
+
+
+    @BaseCommand.command_wrapper(MessageHandler, filters=(OwnFilters.text_is('Cancel')
+                                                          & OwnFilters.menu(TelegramUser.ADD_PARTICIPANT)))
+    def cancel(self):
+        if self.current_group:
+            self.manage_group(self.current_group)

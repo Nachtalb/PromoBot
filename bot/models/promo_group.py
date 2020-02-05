@@ -5,7 +5,10 @@ from telegram import Chat
 from bot.utils.internal import bot_not_running_protect
 
 
-class TelegramChat:
+class TelegramChat(TimeStampedModel):
+    class Meta:
+        abstract = True
+
     _chat = None
 
     auto_update = []
@@ -52,7 +55,7 @@ class Participant(TimeStampedModel):
     topic = models.ForeignKey('Topic', on_delete=models.SET_NULL, blank=True, null=True)
 
 
-class TelegramUser(TimeStampedModel, TelegramChat):
+class TelegramUser(TelegramChat):
     auto_update = ['username', 'full_name']
 
     MAIN = 'main'
@@ -61,6 +64,7 @@ class TelegramUser(TimeStampedModel, TelegramChat):
     MANAGE_GROUP = 'manage group'
     EDIT_NAME = 'edit name'
     DELETE_GROUP = 'delete group'
+    ADD_PARTICIPANT = 'add participant'
 
     MENUS = [MAIN, NEW_PG_Q_1, MANAGE_GROUPS, MANAGE_GROUP]
 
@@ -92,7 +96,7 @@ class TelegramUser(TimeStampedModel, TelegramChat):
         self.save(update_fields=['menu'])
 
 
-class TelegramChannel(TimeStampedModel, TelegramChat):
+class TelegramChannel(TelegramChat):
     auto_update = ['username', 'title']
 
     id = models.fields.BigIntegerField(primary_key=True)

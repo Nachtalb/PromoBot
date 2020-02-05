@@ -58,17 +58,17 @@ class Filters:
 
         return TextIsNot()
 
-    class _TextIsChannel(BaseFilter):
-        name = 'Filters.text_is_channel'
+    class _ChannelMessage(BaseFilter):
+        name = 'Filters.channel_message'
 
         def filter(self, message):
-            return message.text in list(map(lambda obj: obj.name, TelegramChannel.objects.all()))
+            return message.forward_from_chat and message.forward_from_chat.type == 'channel'
 
-    text_is_channel = _TextIsChannel()
+    channel_message = _ChannelMessage()
     """:obj:`Filter`: Message text is name of channel."""
 
     @staticmethod
-    def menu(menu):
+    def menu(*menus):
         """:obj:`Filter`: Check if the current user is in the given menu."""
 
         class MenuIs(BaseFilter):
@@ -78,6 +78,7 @@ class Filters:
                 if not message.from_user:
                     return False
                 user = TelegramUser.objects.get(id=message.from_user.id)
-                return user.menu == menu
+
+                return user.menu in menus
 
         return MenuIs()
