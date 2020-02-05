@@ -60,6 +60,7 @@ class TelegramUser(TimeStampedModel, TelegramChat):
     MANAGE_GROUPS = 'manage groups'
     MANAGE_GROUP = 'manage group'
     EDIT_NAME = 'edit name'
+    DELETE_GROUP = 'delete group'
 
     MENUS = [MAIN, NEW_PG_Q_1, MANAGE_GROUPS, MANAGE_GROUP]
 
