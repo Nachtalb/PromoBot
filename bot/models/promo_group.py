@@ -42,10 +42,12 @@ class TelegramChat(TimeStampedModel):
 class PromoGroup(TimeStampedModel):
     admins = models.ManyToManyField('TelegramUser', related_name='admins_at')
     name = models.fields.CharField(max_length=200)
-    participant = models.ManyToManyField('Participant', related_name='promo_groups', blank=True)
     active = models.fields.BooleanField(default=False)
 
     template = models.fields.TextField(blank=True, default='')
+
+    def __str__(self):
+        return self.name
 
 
 class Participant(TimeStampedModel):
@@ -54,6 +56,9 @@ class Participant(TimeStampedModel):
 
     active = models.fields.BooleanField(default=True)
     topic = models.ForeignKey('Topic', on_delete=models.SET_NULL, blank=True, null=True)
+
+    def __str__(self):
+        return f'{self.promo_group.name} - {self.channel.title}'
 
 
 class TelegramUser(TelegramChat):
@@ -82,6 +87,9 @@ class TelegramUser(TelegramChat):
     def name(self) -> str:
         return self.__str__()
 
+    def username_or_name(self) -> str:
+        return self.username or self.full_name
+
     def set_menu(self, menu):
         self.menu = menu
         self.save(update_fields=['menu'])
@@ -96,6 +104,9 @@ class TelegramChannel(TelegramChat):
 
     admins = models.ManyToManyField('TelegramUser', related_name='channels')
 
+    def username_or_title(self):
+        return self.username or self.title
+
     def __str__(self):
         return self.title
 
@@ -107,3 +118,6 @@ class TelegramChannel(TelegramChat):
 class Topic(TimeStampedModel):
     name = models.fields.CharField(max_length=200)
     promo_group = models.ForeignKey('PromoGroup', on_delete=models.CASCADE, related_name='topics')
+
+    def __str__(self):
+        return self.name
