@@ -88,11 +88,15 @@ class TelegramUser(TelegramChat):
         return self.__str__()
 
     def username_or_name(self) -> str:
-        return self.username or self.full_name
+        return self.at_username or self.full_name
 
     def set_menu(self, menu):
         self.menu = menu
         self.save(update_fields=['menu'])
+
+    @property
+    def at_username(self) -> str:
+        return f'@{self.username}' if self.username else ''
 
 
 class TelegramChannel(TelegramChat):
@@ -105,7 +109,7 @@ class TelegramChannel(TelegramChat):
     admins = models.ManyToManyField('TelegramUser', related_name='channels')
 
     def username_or_title(self):
-        return self.username or self.title
+        return self.at_username or self.title
 
     def __str__(self):
         return self.title
@@ -113,6 +117,10 @@ class TelegramChannel(TelegramChat):
     @property
     def name(self) -> str:
         return self.__str__()
+
+    @property
+    def at_username(self) -> str:
+        return f'@{self.username}' if self.username else ''
 
 
 class Topic(TimeStampedModel):
