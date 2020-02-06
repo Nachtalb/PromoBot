@@ -11,26 +11,29 @@ from bot.models import PromoGroup, Participant, TelegramUser, TelegramChannel, T
 link_template = '<a href="{link}" target={target}>{text}</a>'
 
 
-def model_link(obj: str, text_field: str) -> SafeText:
+def model_link(obj: str, text_field: str = None, prefix: str = '', suffix: str = '') -> SafeText:
     url = reverse(f'admin:bot_{obj.__class__.__name__.lower()}_change', args=(obj.id, ))
-    text = getattr(obj, text_field)
-    if isinstance(text, Callable):
-        text = text()
+    if text_field:
+        text = getattr(obj, text_field)
+        if isinstance(text, Callable):
+            text = text()
+    else:
+        text = ''
 
-    return format_html(link_template, link=url, text=text, target='_self')
+    return format_html(link_template, link=url, text=f'{prefix}{text}{suffix}'.strip(), target='_self')
 
 
 class TelegramUserAdmin(admin.ModelAdmin):
     fieldsets = (
         ('Infos', {
-            'fields': ('id', 'username', 'full_name',)
+            'fields': ('id', 'username', 'full_name', 'affiliated_groups', 'affiliated_channels')
         }),
         ('Bot State', {
             'fields': ('menu', 'current_group', 'tmp_data'),
         }),
     )
 
-    readonly_fields = ['id',]
+    readonly_fields = ['id', 'username', 'full_name', 'affiliated_groups', 'affiliated_channels']
     list_display = ['id', 'linked_username', 'full_name', 'channel__names', 'current_group__link', 'modified', 'created']
     list_filter = ['channels']
 
@@ -47,6 +50,33 @@ class TelegramUserAdmin(admin.ModelAdmin):
     def channel__names(self, obj: TelegramUser) -> SafeText:
         return mark_safe(', '.join(map(lambda obj: model_link(obj, 'title'), obj.channels.all())))
 
+    def affiliated_groups(self, obj: TelegramUser) -> SafeText:
+        participating = []
+        for channel in obj.channels.all():
+            for participant in channel.participating.all():
+                participating.append(participant.promo_group)
+
+        participating = set(participating)
+        admins = set(obj.admins_at.all())
+
+        final_resultset = []
+        for group in participating | admins:
+            addition = []
+            if {group} & admins:
+                addition.append('admin')
+            if {group} & participating:
+                addition.append('participating')
+            final_resultset.append(model_link(group, 'name', suffix=f' ({", ".join(addition)})'))
+
+        return mark_safe(', '.join(final_resultset))
+
+    affiliated_groups.short_description = 'Affiliated Promotion Groups'
+
+    def affiliated_channels(self, obj: TelegramUser) -> SafeText:
+        return mark_safe(', '.join(map(lambda c: model_link(c, 'title'), obj.channels.all())))
+
+    affiliated_channels.short_description = 'Channels'
+
 
 admin.site.register(TelegramUser, TelegramUserAdmin)
 
@@ -54,11 +84,11 @@ admin.site.register(TelegramUser, TelegramUserAdmin)
 class TelegramChannelAdmin(admin.ModelAdmin):
     fieldsets = (
         ('Infos', {
-            'fields': ('id', 'username', 'title', 'admins')
+            'fields': ('id', 'username', 'title', 'admins', 'participating_in')
         }),
     )
 
-    readonly_fields = ['id',]
+    readonly_fields = ['id', 'username', 'title', 'participating_in']
     list_display = ['id', 'linked_username', 'linked_title', 'linked_admins', 'modified', 'created']
     # list_filter = ['channels']
 
@@ -80,6 +110,16 @@ class TelegramChannelAdmin(admin.ModelAdmin):
     def linked_admins(self, obj: TelegramChannel) -> SafeText or None:
         return mark_safe(', '.join(map(lambda o: model_link(o, 'username_or_name'), obj.admins.all())))
 
+    def participating_in(self, obj: TelegramChannel) -> SafeText:
+        participating = []
+        for participant in obj.participating.all():
+            participating.append('%s %s' % (model_link(participant.promo_group, 'name'),
+                                            model_link(participant, prefix='(P)')))
+
+        return mark_safe(', '.join(participating))
+
+    participating_in.short_description = 'Participating in'
+
 
 admin.site.register(TelegramChannel, TelegramChannelAdmin)
 
@@ -87,24 +127,33 @@ admin.site.register(TelegramChannel, TelegramChannelAdmin)
 class PromoGroupAdmin(admin.ModelAdmin):
     fieldsets = (
         ('Infos', {
-            'fields': ('name',)
+            'fields': ('name', 'linked_participants', 'linked_topics')
         }),
         ('Settings', {
-            'fields': ('admins', 'active', 'template', ),
+            'fields': ('admins', 'linked_admins', 'active', 'template', ),
         }),
     )
 
+    readonly_fields = ['linked_participants', 'linked_topics', 'linked_admins']
     list_display = ['name', 'linked_admins', 'linked_participants', 'linked_topics', 'active', 'modified', 'created']
-    # list_filter = ['']
 
     def linked_admins(self, obj: PromoGroup) -> SafeText or None:
         return mark_safe(', '.join(map(lambda o: model_link(o, 'username_or_name'), obj.admins.all())))
 
+    linked_admins.short_description = 'Admins'
+
     def linked_participants(self, obj: PromoGroup) -> SafeText or None:
-        return mark_safe(', '.join(map(lambda o: model_link(o, '__str__'), obj.participants.all())))
+        return mark_safe(', '.join(map(lambda p: '%s %s' % (model_link(p.channel, 'title'),  model_link(p, prefix='(P)')),
+                                       obj.participants.all())))
+
+
+
+    linked_participants.short_description = 'Participants'
 
     def linked_topics(self, obj: PromoGroup) -> SafeText or None:
         return mark_safe(', '.join(map(lambda o: model_link(o, 'name'), obj.topics.all())))
+
+    linked_topics.short_description = 'Topics'
 
 
 admin.site.register(PromoGroup, PromoGroupAdmin)
