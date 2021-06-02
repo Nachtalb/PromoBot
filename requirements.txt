@@ -20,4 +20,4 @@ six==1.14.0
 sqlparse==0.3.0
 telegraph==1.4.0
 tornado==6.0.3
-urllib3==1.25.8
+urllib3==1.26.5
